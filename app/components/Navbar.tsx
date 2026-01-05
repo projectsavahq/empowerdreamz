@@ -24,9 +24,11 @@ export default function Navbar() {
         { name: "Why We Exist", path: "/exist" }
       ]
     },
-    { name: "Projects", path: "/projects",
+    { name: "Projects", 
+      path: "/projects",
       hasDropdown: true,
       dropdownItems: [
+        { name: "Projects", path: "/projects" },
         { name: "Ledger", path: "/ledger" },
       ]
      },
