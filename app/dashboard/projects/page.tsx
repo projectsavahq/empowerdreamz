@@ -28,7 +28,7 @@ interface Project {
   tag?: string;
   isActive: boolean;
   isLive: boolean;
- createdAt?: { toDate: () => Date } | Date | null;
+  createdAt?: { toDate: () => Date } | Date | null;
   updatedAt?: { toDate: () => Date } | Date | null;
 }
 
@@ -42,7 +42,7 @@ export default function ProjectsPage() {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  // Form state
+  // Form state - UPDATED TO INCLUDE RAISED
   const [formData, setFormData] = useState({
     title: '',
     subtitle: '',
@@ -51,6 +51,7 @@ export default function ProjectsPage() {
     callToAction: '',
     category: 'water',
     goal: 0,
+    raised: 0,
     image: '',
     tag: '',
     isActive: true,
@@ -89,6 +90,7 @@ export default function ProjectsPage() {
         callToAction: project.callToAction || '',
         category: project.category || 'water',
         goal: project.goal || 0,
+        raised: project.raised || 0,
         image: project.image || '',
         tag: project.tag || '',
         isActive: project.isActive ?? true,
@@ -104,6 +106,7 @@ export default function ProjectsPage() {
         callToAction: '',
         category: 'water',
         goal: 0,
+        raised: 0,
         image: '',
         tag: '',
         isActive: true,
@@ -150,7 +153,6 @@ export default function ProjectsPage() {
         await addDoc(collection(db, 'projects'), {
           ...formData,
           id: projectId,
-          raised: 0,
           supporters: 0,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp()
@@ -445,6 +447,25 @@ export default function ProjectsPage() {
                     placeholder="50000"
                   />
                 </div>
+              </div>
+
+              {/* RAISED AMOUNT - NEW FIELD */}
+              <div>
+                <label className="block text-sm font-medium text-gray-900 mb-2">
+                  Raised Amount ($)
+                </label>
+                <input
+                  type="number"
+                  value={formData.raised}
+                  onChange={(e) => setFormData({...formData, raised: Number(e.target.value)})}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  disabled={saving}
+                  min="0"
+                  placeholder="0"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Manually enter the amount raised for this project
+                </p>
               </div>
 
               {/* Image URL */}
