@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Image from "next/image";
 import { Mail, Lock, Eye, EyeOff, ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { signInWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
+import { signInWithEmailAndPassword, sendEmailVerification, sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 
 export default function LoginPage() {
@@ -16,6 +16,9 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [needsVerification, setNeedsVerification] = useState(false);
   const [verificationSent, setVerificationSent] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmailSent, setResetEmailSent] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -131,6 +134,163 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    if (!resetEmail) {
+      setError("Please enter your email address.");
+      return;
+    }
+
+    if (!resetEmail.includes("@")) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      await sendPasswordResetEmail(auth, resetEmail);
+      setResetEmailSent(true);
+    } catch (err) {
+      console.error("Password reset error:", err);
+
+      if (err instanceof Error) {
+        const firebaseError = err as { code?: string };
+
+        if (firebaseError.code === "auth/user-not-found") {
+          setError("No account found with this email address.");
+        } else if (firebaseError.code === "auth/invalid-email") {
+          setError("Invalid email address.");
+        } else if (firebaseError.code === "auth/too-many-requests") {
+          setError("Too many requests. Please try again later.");
+        } else {
+          setError("Failed to send password reset email. Please try again.");
+        }
+      } else {
+        setError("An unexpected error occurred. Please try again.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Show forgot password screen
+  if (showForgotPassword) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-8 bg-gray-50">
+        <div className="w-full max-w-md">
+          <div className="bg-white rounded-2xl p-8 shadow-lg">
+            <div className="text-center mb-8">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Lock className="h-8 w-8 text-green-600" />
+              </div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                Reset Password
+              </h2>
+              <p className="text-gray-600">
+                {resetEmailSent 
+                  ? "Check your email for reset instructions"
+                  : "Enter your email address and we'll send you a link to reset your password"
+                }
+              </p>
+            </div>
+
+            {!resetEmailSent ? (
+              <form onSubmit={handleForgotPassword} className="space-y-6">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Email address
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Mail className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      type="email"
+                      value={resetEmail}
+                      onChange={(e) => setResetEmail(e.target.value)}
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                      placeholder="you@domain.com"
+                      disabled={loading}
+                      required
+                    />
+                  </div>
+                </div>
+
+                {error && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+                    {error}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3 px-4 rounded-xl font-semibold hover:from-green-700 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-green-500/30"
+                >
+                  {loading ? "Sending..." : "Send Reset Link"}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowForgotPassword(false);
+                    setResetEmail("");
+                    setError("");
+                  }}
+                  className="w-full text-gray-600 hover:text-gray-900 font-medium text-sm transition-colors"
+                >
+                  ← Back to Login
+                </button>
+              </form>
+            ) : (
+              <div className="space-y-6">
+                <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                  <p className="text-sm text-green-800 mb-2">
+                    ✓ Password reset email sent to <strong>{resetEmail}</strong>
+                  </p>
+                  <p className="text-xs text-green-700">
+                    Check your inbox and spam folder for the reset link. The link will expire in 1 hour.
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => {
+                    setShowForgotPassword(false);
+                    setResetEmailSent(false);
+                    setResetEmail("");
+                    setError("");
+                  }}
+                  className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3 px-4 rounded-xl font-semibold hover:from-green-700 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all shadow-lg shadow-green-500/30"
+                >
+                  Back to Login
+                </button>
+
+                <button
+                  onClick={() => {
+                    setResetEmailSent(false);
+                    setError("");
+                  }}
+                  className="w-full text-green-600 hover:text-green-700 font-medium text-sm transition-colors"
+                >
+                  Resend Reset Email
+                </button>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                  <p className="text-xs text-blue-800">
+                    <strong>Tip:</strong> After resetting your password via the email link, return to the login page to sign in with your new password.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Show verification required screen
   if (needsVerification) {
@@ -337,6 +497,13 @@ export default function LoginPage() {
                   <label className="block text-sm font-semibold text-gray-700">
                     Password
                   </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotPassword(true)}
+                    className="text-sm text-green-600 hover:text-green-700 font-medium transition-colors"
+                  >
+                    Forgot password?
+                  </button>
                 </div>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">

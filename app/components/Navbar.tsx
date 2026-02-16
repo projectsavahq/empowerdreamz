@@ -29,6 +29,7 @@ export default function Navbar() {
       hasDropdown: true,
       dropdownItems: [
         { name: "Projects", path: "/projects" },
+        { name: "Completed Projects", path: "/completed-projects" },
         { name: "Ledger", path: "/ledger" },
       ]
      },

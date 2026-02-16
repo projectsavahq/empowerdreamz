@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { DollarSign, Calendar, Search, Download, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { DollarSign, Calendar, Search, Download, ArrowUpRight, ArrowDownRight, TrendingUp, Target } from 'lucide-react';
 import { db } from '@/lib/firebase';
-import { collection, query, orderBy, getDocs } from 'firebase/firestore';
+import { collection, query, orderBy, getDocs, where } from 'firebase/firestore';
 
 interface Transaction {
   id: string;
@@ -19,18 +19,48 @@ interface Transaction {
   createdAt?: any;
 }
 
+interface Project {
+  id: string;
+  title: string;
+  raised: number;
+  goal: number;
+  category: string;
+  isActive: boolean;
+}
+
 export default function LedgerPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchTransactions();
+    fetchData();
   }, []);
 
-  const fetchTransactions = async () => {
+  const fetchData = async () => {
     try {
+      // Fetch projects first
+      const projectsSnapshot = await getDocs(
+        query(collection(db, 'projects'), where('isActive', '==', true), orderBy('createdAt', 'desc'))
+      );
+
+      const projectsData: Project[] = projectsSnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          title: data.title || 'Untitled Project',
+          raised: data.raised || 0,
+          goal: data.goal || 0,
+          category: data.category || 'general',
+          isActive: data.isActive || false
+        };
+      });
+
+      setProjects(projectsData);
+
+      // Fetch transactions
       const allTransactions: Transaction[] = [];
 
       // Fetch donations (income)
@@ -62,7 +92,6 @@ export default function LedgerPage() {
       expensesSnapshot.forEach((doc) => {
         const data = doc.data();
         
-        // Better date handling
         let expenseDate;
         if (data.createdAt?.toDate) {
           expenseDate = data.createdAt.toDate().toISOString();
@@ -97,7 +126,7 @@ export default function LedgerPage() {
       setTransactions(allTransactions);
       setLoading(false);
     } catch (error) {
-      console.error('Error fetching transactions:', error);
+      console.error('Error fetching data:', error);
       setLoading(false);
     }
   };
@@ -110,7 +139,8 @@ export default function LedgerPage() {
     .filter(t => t.type === 'expense')
     .reduce((sum, t) => sum + t.amount, 0);
 
-  const balance = totalIncome - totalExpenses;
+  // Calculate total raised across all projects
+  const totalProjectFunds = projects.reduce((sum, p) => sum + p.raised, 0);
 
   const filteredTransactions = transactions.filter(transaction => {
     const matchesFilter = selectedFilter === 'all' || transaction.type === selectedFilter;
@@ -172,19 +202,19 @@ export default function LedgerPage() {
           </div>
 
           {/* Summary Cards */}
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             <div className="bg-white/95 backdrop-blur rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
               <div className="flex items-center justify-between mb-4">
                 <div className="p-3 bg-emerald-50 rounded-2xl">
                   <ArrowUpRight className="w-6 h-6 text-emerald-600" />
                 </div>
-                <span className="text-xs uppercase tracking-wider text-gray-500 font-medium">Income</span>
+                <span className="text-xs uppercase tracking-wider text-gray-500 font-medium">Total Income</span>
               </div>
               <p className="text-5xl font-extralight text-gray-900 mb-2">
                 ${totalIncome.toLocaleString()}
               </p>
               <p className="text-sm text-gray-500 font-light">
-                {transactions.filter(t => t.type === 'income').length} donations
+                {transactions.filter(t => t.type === 'income').length} donations received
               </p>
             </div>
 
@@ -193,39 +223,110 @@ export default function LedgerPage() {
                 <div className="p-3 bg-red-50 rounded-2xl">
                   <ArrowDownRight className="w-6 h-6 text-red-600" />
                 </div>
-                <span className="text-xs uppercase tracking-wider text-gray-500 font-medium">Expenses</span>
+                <span className="text-xs uppercase tracking-wider text-gray-500 font-medium">Total Expenses</span>
               </div>
               <p className="text-5xl font-extralight text-gray-900 mb-2">
                 ${totalExpenses.toLocaleString()}
               </p>
               <p className="text-sm text-gray-500 font-light">
-                {transactions.filter(t => t.type === 'expense').length} transactions
-              </p>
-            </div>
-
-            <div className="bg-white/95 backdrop-blur rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-blue-50 rounded-2xl">
-                  <DollarSign className="w-6 h-6 text-blue-600" />
-                </div>
-                <span className="text-xs uppercase tracking-wider text-gray-500 font-medium">Balance</span>
-              </div>
-              <p className="text-5xl font-extralight text-gray-900 mb-2">
-                ${balance.toLocaleString()}
-              </p>
-              <p className="text-sm text-gray-500 font-light">
-                Available funds
+                {transactions.filter(t => t.type === 'expense').length} expenses tracked
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Filters & Search */}
+      {/* PROJECT FUNDS BREAKDOWN - NEW SECTION */}
       <section className="max-w-6xl mx-auto px-6 -mt-8 mb-12">
+        <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100/50">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h2 className="text-2xl font-light text-gray-900 mb-2">
+                Project Funds <span className="font-normal text-emerald-600">Breakdown</span>
+              </h2>
+              <p className="text-sm text-gray-500 font-light">
+                Live tracking of funds raised for each active project
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-sm text-gray-500 mb-1">Total Project Funds</p>
+              <p className="text-3xl font-extralight text-emerald-600">
+                ${totalProjectFunds.toLocaleString()}
+              </p>
+            </div>
+          </div>
+
+          {projects.length === 0 ? (
+            <div className="text-center py-12">
+              <TrendingUp className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500 font-light">No active projects yet</p>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 gap-6">
+              {projects.map((project) => (
+                <div
+                  key={project.id}
+                  className="bg-gradient-to-br from-gray-50 to-emerald-50/30 rounded-2xl p-6 border border-gray-100 hover:border-emerald-200 transition-all duration-300"
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <h3 className="text-lg font-normal text-gray-900 mb-1">
+                        {project.title}
+                      </h3>
+                      <span className="text-xs uppercase tracking-wider text-gray-500 font-medium">
+                        {project.category.replace(/-/g, ' ')}
+                      </span>
+                    </div>
+                    <div className="p-2 bg-emerald-100 rounded-xl">
+                      <Target className="w-5 h-5 text-emerald-600" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-end">
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Raised</p>
+                        <p className="text-3xl font-extralight text-emerald-600">
+                          ${project.raised.toLocaleString()}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs text-gray-500 mb-1">Goal</p>
+                        <p className="text-xl font-light text-gray-700">
+                          ${project.goal.toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-xs text-gray-500">Progress</span>
+                        <span className="text-xs font-medium text-emerald-600">
+                          {project.goal > 0 ? Math.round((project.raised / project.goal) * 100) : 0}%
+                        </span>
+                      </div>
+                      <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-gradient-to-r from-emerald-500 to-green-500 rounded-full transition-all duration-500"
+                          style={{ 
+                            width: `${project.goal > 0 ? Math.min((project.raised / project.goal) * 100, 100) : 0}%` 
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Rest of the component continues... */}
+      <section className="max-w-6xl mx-auto px-6 mb-12">
         <div className="bg-white rounded-3xl p-6 shadow-lg border border-gray-100/50">
           <div className="flex flex-col md:flex-row gap-4 items-center">
-            {/* Filter Pills */}
             <div className="flex gap-2 flex-wrap">
               <button
                 onClick={() => setSelectedFilter('all')}
@@ -259,7 +360,6 @@ export default function LedgerPage() {
               </button>
             </div>
 
-            {/* Search Bar */}
             <div className="flex-1 w-full relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
@@ -271,7 +371,6 @@ export default function LedgerPage() {
               />
             </div>
 
-            {/* Export */}
             <button 
               onClick={exportToCSV}
               className="px-5 py-2.5 bg-gray-50 rounded-full text-sm hover:bg-gray-100 flex items-center gap-2 whitespace-nowrap transition-all font-light"
@@ -283,8 +382,16 @@ export default function LedgerPage() {
         </div>
       </section>
 
-      {/* Transactions List */}
       <section className="max-w-6xl mx-auto px-6 pb-20">
+        <div className="mb-6">
+          <h2 className="text-2xl font-light text-gray-900">
+            Transaction <span className="font-normal text-emerald-600">History</span>
+          </h2>
+          <p className="text-sm text-gray-500 font-light mt-1">
+            Complete record of all financial activities
+          </p>
+        </div>
+
         <div className="space-y-4">
           {filteredTransactions.length === 0 ? (
             <div className="text-center py-12 bg-white rounded-3xl border border-gray-100/50">
@@ -298,7 +405,6 @@ export default function LedgerPage() {
               >
                 <div className="flex items-center justify-between gap-6">
                   <div className="flex items-center gap-4 flex-1 min-w-0">
-                    {/* Icon */}
                     <div className={`flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center ${
                       transaction.type === 'income'
                         ? 'bg-emerald-50 text-emerald-600'
@@ -311,7 +417,6 @@ export default function LedgerPage() {
                       )}
                     </div>
 
-                    {/* Details */}
                     <div className="flex-1 min-w-0">
                       <h3 className="text-base font-normal text-gray-900 mb-1 truncate">
                         {transaction.description}
@@ -345,7 +450,6 @@ export default function LedgerPage() {
                     </div>
                   </div>
 
-                  {/* Amount */}
                   <div className="text-right flex-shrink-0">
                     <p className={`text-3xl font-extralight mb-1 ${
                       transaction.type === 'income' ? 'text-emerald-600' : 'text-red-600'
@@ -367,15 +471,14 @@ export default function LedgerPage() {
         </div>
       </section>
 
-      {/* Trust Banner */}
       <section className="bg-white border-t border-gray-100 py-20 px-6">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl font-extralight text-gray-900 mb-4">
             Built on <span className="font-normal text-emerald-600">Transparency</span>
           </h2>
           <p className="text-base text-gray-600 mb-16 font-light leading-relaxed max-w-2xl mx-auto">
-            We believe in complete transparency. Every donation tracked, every expense documented. 
-            Your trust is our foundation.
+            We believe in complete transparency. Every donation tracked, every expense documented, 
+            every project's funds clearly displayed. Your trust is our foundation.
           </p>
           <div className="grid md:grid-cols-3 gap-12">
             <div className="group">
