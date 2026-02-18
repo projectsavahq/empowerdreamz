@@ -2,9 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
 // This will read from .env.local
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 export async function POST(request: NextRequest) {
+
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!); // ✅ moved inside
+
+
   try {
     const { amount } = await request.json();
 

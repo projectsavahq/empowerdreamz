@@ -4,7 +4,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import admin from 'firebase-admin';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 // Initialize Firebase Admin (only once)
 if (!admin.apps.length) {
@@ -20,6 +19,9 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 export async function POST(request: NextRequest) {
+
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+
   const body = await request.text();
   
   // Get signature from request headers directly
