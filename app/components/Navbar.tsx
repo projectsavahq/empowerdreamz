@@ -33,6 +33,7 @@ export default function Navbar() {
         { name: "Ledger", path: "/ledger" },
       ]
      },
+     {name: "Given-Circle", path: "/giving-circle"},
     { name: "Our Team", path: "/our-team" },
     { name: "Contact", path: "/contact" },
   ];

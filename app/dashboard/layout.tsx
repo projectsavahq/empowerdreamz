@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Home, FolderOpen, DollarSign, Settings, LogOut, Menu, X } from 'lucide-react';
+import { Home, FolderOpen, DollarSign, Settings, LogOut, Menu, X, Handshake } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { auth } from '@/lib/firebase';
@@ -21,6 +21,7 @@ export default function DashboardLayout({
   const navigation = [
     { name: 'Overview', icon: Home, href: '/dashboard' },
     { name: 'Projects', icon: FolderOpen, href: '/dashboard/projects' },
+    { name: 'Giving Circle', icon: Handshake, href: '/dashboard/giving-circle' },
     { name: 'Donations', icon: DollarSign, href: '/dashboard/donations' },
     { name: 'Settings', icon: Settings, href: '/dashboard/settings' }
   ];
