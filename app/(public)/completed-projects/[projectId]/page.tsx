@@ -1,11 +1,12 @@
 "use client"
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { CheckCircle, Calendar, Users, ArrowRight, Quote, Loader2, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { collection, onSnapshot } from 'firebase/firestore';
+import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { useParams } from 'next/navigation';
 
 interface CompletionData {
   completedDate?: string;
@@ -48,23 +49,6 @@ interface Project {
   completionData?: CompletionData;
 }
 
-// What we actually render — could be a main project or a sub-project
-interface CardItem {
-  id: string;
-  title: string;
-  subtitle?: string;
-  description: string;
-  goal: number;
-  raised?: number;
-  supporters?: number;
-  image?: string;
-  completionData?: CompletionData;
-  parentTitle?: string;       // only for sub-projects
-  parentId?: string;          // only for sub-projects
-  isMainProject?: boolean;    // true = clicking goes to detail page
-  completedSubsCount?: number; // only for main projects
-}
-
 // ── Slideshow ──────────────────────────────────────────────────────
 function ImageSlideshow({ images }: { images: string[] }) {
   const [current, setCurrent] = useState(0);
@@ -88,10 +72,7 @@ function ImageSlideshow({ images }: { images: string[] }) {
 
   return (
     <>
-      <div
-        className="relative rounded-2xl overflow-hidden bg-gray-100 aspect-video group cursor-pointer"
-        onClick={() => setLightbox(true)}
-      >
+      <div className="relative rounded-2xl overflow-hidden bg-gray-100 aspect-video group cursor-pointer" onClick={() => setLightbox(true)}>
         <Image src={images[current]} alt={`slide ${current + 1}`} fill className="object-cover transition-opacity duration-500" />
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
           <span className="opacity-0 group-hover:opacity-100 transition-opacity text-white text-sm font-medium bg-black/40 px-4 py-2 rounded-full">
@@ -148,21 +129,21 @@ function ImageSlideshow({ images }: { images: string[] }) {
   );
 }
 
-// ── Card ───────────────────────────────────────────────────────────
-function ProjectCard({ item }: { item: CardItem }) {
+// ── Community Card ─────────────────────────────────────────────────
+function CommunityCard({ sub, projectImage }: { sub: SubProject; projectImage?: string }) {
   const [expanded, setExpanded] = useState(false);
 
   const allImages = [
-    ...(item.completionData?.beforeImages?.filter(u => u.trim()) || []),
-    ...(item.completionData?.afterImages?.filter(u => u.trim()) || []),
-    ...(item.completionData?.progressImages?.filter(u => u.trim()) || []),
+    ...(sub.completionData?.beforeImages?.filter(u => u.trim()) || []),
+    ...(sub.completionData?.afterImages?.filter(u => u.trim()) || []),
+    ...(sub.completionData?.progressImages?.filter(u => u.trim()) || []),
   ];
 
-  const hasTestimonials = (item.completionData?.testimonials?.length || 0) > 0;
-  const hasImpact = item.completionData?.impactStats && (
-    (item.completionData.impactStats.peopleHelped || 0) > 0 ||
-    (item.completionData.impactStats.itemsDistributed || 0) > 0 ||
-    !!item.completionData.impactStats.customMetric
+  const hasTestimonials = (sub.completionData?.testimonials?.length || 0) > 0;
+  const hasImpact = sub.completionData?.impactStats && (
+    (sub.completionData.impactStats.peopleHelped || 0) > 0 ||
+    (sub.completionData.impactStats.itemsDistributed || 0) > 0 ||
+    !!sub.completionData.impactStats.customMetric
   );
 
   const formatCurrency = (amount: number) =>
@@ -180,9 +161,9 @@ function ProjectCard({ item }: { item: CardItem }) {
       <div className="p-4 pb-0">
         {allImages.length > 0 ? (
           <ImageSlideshow images={allImages} />
-        ) : item.image ? (
+        ) : projectImage ? (
           <div className="relative h-48 rounded-2xl overflow-hidden bg-gray-100">
-            <Image src={item.image} alt={item.title} fill className="object-cover" />
+            <Image src={projectImage} alt={sub.title} fill className="object-cover" />
           </div>
         ) : (
           <div className="h-48 rounded-2xl bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center">
@@ -192,39 +173,26 @@ function ProjectCard({ item }: { item: CardItem }) {
       </div>
 
       <div className="p-6 flex flex-col flex-1">
-        {/* Badges */}
-        <div className="flex items-center gap-2 flex-wrap mb-3">
+        {/* Badge */}
+        <div className="flex items-center gap-2 mb-3">
           <span className="bg-green-100 text-green-700 text-xs px-3 py-1 rounded-full font-medium flex items-center gap-1">
             <CheckCircle className="w-3 h-3" /> Completed
           </span>
-          {/* Sub-project: show parent name */}
-          {item.parentTitle && (
-            <span className="bg-blue-100 text-blue-700 text-xs px-3 py-1 rounded-full font-medium">
-              {item.parentTitle}
-            </span>
-          )}
-          {/* Main project: show communities count */}
-          {item.isMainProject && item.completedSubsCount && item.completedSubsCount > 0 && (
-            <span className="bg-blue-100 text-blue-700 text-xs px-3 py-1 rounded-full font-medium flex items-center gap-1">
-              <Users className="w-3 h-3" /> {item.completedSubsCount} {item.completedSubsCount === 1 ? 'Community' : 'Communities'}
-            </span>
-          )}
         </div>
 
-        <h2 className="text-xl font-medium text-gray-900 mb-1">{item.title}</h2>
-        {item.subtitle && <p className="text-sm text-gray-500 mb-3">{item.subtitle}</p>}
+        <h3 className="text-lg font-medium text-gray-900 mb-1">{sub.title}</h3>
+        {sub.communityName && <p className="text-sm text-gray-500 mb-3">{sub.communityName}</p>}
 
         <div className="flex items-center gap-1.5 text-xs text-gray-400 mb-4">
           <Calendar className="w-3.5 h-3.5" />
-          {formatDate(item.completionData?.completedDate)}
+          {formatDate(sub.completionData?.completedDate)}
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-2 mb-4">
+        <div className="grid grid-cols-2 gap-2 mb-4">
           {[
-            { label: 'Raised', value: formatCurrency(item.raised || 0), color: 'text-green-600' },
-            { label: 'Goal', value: formatCurrency(item.goal), color: 'text-gray-900' },
-            { label: 'Supporters', value: (item.supporters || 0).toLocaleString(), color: 'text-gray-900' },
+            { label: 'Raised', value: formatCurrency(sub.raised || 0), color: 'text-green-600' },
+            { label: 'Goal', value: formatCurrency(sub.goal), color: 'text-gray-900' },
           ].map(({ label, value, color }) => (
             <div key={label} className="bg-gray-50 rounded-xl p-3 text-center">
               <div className={`text-sm font-semibold ${color}`}>{value}</div>
@@ -234,45 +202,45 @@ function ProjectCard({ item }: { item: CardItem }) {
         </div>
 
         {/* Story preview */}
-        {item.completionData?.completionStory && (
+        {sub.completionData?.completionStory && (
           <p className={`text-sm text-gray-600 leading-relaxed mb-4 ${!expanded ? 'line-clamp-3' : ''}`}>
-            {item.completionData.completionStory}
+            {sub.completionData.completionStory}
           </p>
         )}
 
-        {/* Expanded extras — only for sub-projects / standalone projects */}
-        {!item.isMainProject && expanded && (
+        {/* Expanded extras */}
+        {expanded && (
           <div className="space-y-4 mb-4">
             {hasImpact && (
               <div className="flex flex-wrap gap-4 p-4 bg-green-50 rounded-2xl">
-                {(item.completionData!.impactStats!.peopleHelped || 0) > 0 && (
+                {(sub.completionData!.impactStats!.peopleHelped || 0) > 0 && (
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
                       <Users className="w-4 h-4 text-green-600" />
                     </div>
                     <div>
-                      <div className="text-sm font-medium text-gray-900">{item.completionData!.impactStats!.peopleHelped!.toLocaleString()}</div>
+                      <div className="text-sm font-medium text-gray-900">{sub.completionData!.impactStats!.peopleHelped!.toLocaleString()}</div>
                       <div className="text-xs text-gray-500">People Helped</div>
                     </div>
                   </div>
                 )}
-                {(item.completionData!.impactStats!.itemsDistributed || 0) > 0 && (
+                {(sub.completionData!.impactStats!.itemsDistributed || 0) > 0 && (
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
                       <CheckCircle className="w-4 h-4 text-green-600" />
                     </div>
                     <div>
-                      <div className="text-sm font-medium text-gray-900">{item.completionData!.impactStats!.itemsDistributed!.toLocaleString()}</div>
+                      <div className="text-sm font-medium text-gray-900">{sub.completionData!.impactStats!.itemsDistributed!.toLocaleString()}</div>
                       <div className="text-xs text-gray-500">Items Distributed</div>
                     </div>
                   </div>
                 )}
-                {item.completionData!.impactStats!.customMetric && (
+                {sub.completionData!.impactStats!.customMetric && (
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
                       <ArrowRight className="w-4 h-4 text-green-600" />
                     </div>
-                    <div className="text-sm font-medium text-gray-900">{item.completionData!.impactStats!.customMetric}</div>
+                    <div className="text-sm font-medium text-gray-900">{sub.completionData!.impactStats!.customMetric}</div>
                   </div>
                 )}
               </div>
@@ -280,7 +248,7 @@ function ProjectCard({ item }: { item: CardItem }) {
 
             {hasTestimonials && (
               <div className="space-y-3">
-                {item.completionData!.testimonials!.map((t, i) => (
+                {sub.completionData!.testimonials!.map((t, i) => (
                   <div key={i} className="bg-gray-50 rounded-2xl p-4">
                     <Quote className="w-5 h-5 text-green-300 mb-2" />
                     <p className="text-sm text-gray-700 italic mb-3">&quot;{t.text}&quot;</p>
@@ -300,111 +268,52 @@ function ProjectCard({ item }: { item: CardItem }) {
           </div>
         )}
 
-        {/* CTA button */}
+        {/* Toggle */}
         <div className="mt-auto pt-2">
-          {item.isMainProject ? (
-            // Main project → navigate to detail page
-            <Link href={`/completed-projects/${item.id}`}>
-              <button className="w-full py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-full text-sm font-medium transition-all flex items-center justify-center gap-2">
-                View All Communities
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </Link>
-          ) : (
-            // Sub-project / standalone → expand inline
-            <button
-              onClick={() => setExpanded(!expanded)}
-              className="w-full py-2.5 border border-gray-200 rounded-full text-sm text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all flex items-center justify-center gap-1.5"
-            >
-              {expanded ? 'Show Less' : 'View Full Story'}
-              <ChevronRight className={`w-4 h-4 transition-transform duration-300 ${expanded ? 'rotate-90' : ''}`} />
-            </button>
-          )}
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className="w-full py-2.5 border border-gray-200 rounded-full text-sm text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all flex items-center justify-center gap-1.5"
+          >
+            {expanded ? 'Show Less' : 'View Full Story'}
+            <ChevronRight className={`w-4 h-4 transition-transform duration-300 ${expanded ? 'rotate-90' : ''}`} />
+          </button>
         </div>
       </div>
     </div>
   );
 }
 
-// ── Main Page ──────────────────────────────────────────────────────
-export default function CompletedProjectsPage() {
-  const [cards, setCards] = useState<CardItem[]>([]);
+// ── Detail Page ────────────────────────────────────────────────────
+export default function CompletedProjectDetailPage() {
+  const params = useParams();
+  const projectId = params?.projectId as string;
+  const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, 'projects'), (snapshot) => {
-      const result: CardItem[] = [];
-
-      snapshot.docs.forEach(doc => {
-        const project = { id: doc.id, ...doc.data() } as Project;
-
-        if (project.isCompleted) {
-          // Main project is fully complete → show as one clickable card
-          const completedSubs = (project.subProjects || []).filter(s => s.isCompleted);
-          const previewImages = [
-            ...(project.completionData?.beforeImages?.filter(u => u.trim()) || []),
-            ...(project.completionData?.afterImages?.filter(u => u.trim()) || []),
-            ...(project.completionData?.progressImages?.filter(u => u.trim()) || []),
-            // Pull a few from subs as preview if main has no images
-            ...completedSubs.flatMap(s => s.completionData?.afterImages?.filter(u => u.trim()) || []),
-          ].slice(0, 8);
-
-          result.push({
-            id: project.id,
-            title: project.title,
-            subtitle: project.subtitle,
-            description: project.description,
-            goal: project.goal,
-            raised: project.raised,
-            supporters: project.supporters,
-            image: project.image,
-            completionData: {
-              ...project.completionData,
-              afterImages: previewImages,
-            },
-            isMainProject: true,
-            completedSubsCount: completedSubs.length,
-          });
-
-        } else if (project.subProjects?.length) {
-          // Main project still active → show each completed sub-project directly
-          project.subProjects
-            .filter(sub => sub.isCompleted)
-            .forEach(sub => {
-              result.push({
-                id: sub.id,
-                title: sub.title,
-                subtitle: sub.communityName,
-                description: sub.description || project.description,
-                goal: sub.goal,
-                raised: sub.raised,
-                supporters: project.supporters,
-                image: project.image,
-                completionData: sub.completionData,
-                parentTitle: project.title,
-                parentId: project.id,
-                isMainProject: false,
-              });
-            });
-        }
-      });
-
-      setCards(result);
+    if (!projectId) return;
+    const unsubscribe = onSnapshot(doc(db, 'projects', projectId), (snap) => {
+      if (snap.exists()) setProject({ id: snap.id, ...snap.data() } as Project);
       setLoading(false);
     }, (error) => { console.error(error); setLoading(false); });
-
     return () => unsubscribe();
-  }, []);
+  }, [projectId]);
 
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
 
-  const totalStats = {
-    count: cards.length,
-    raised: cards.reduce((s, c) => s + (c.raised || 0), 0),
-    supporters: cards.reduce((s, c) => s + (c.supporters || 0), 0),
-    peopleHelped: cards.reduce((s, c) => s + (c.completionData?.impactStats?.peopleHelped || 0), 0),
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'Recently';
+    return new Date(dateString).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   };
+
+  const mainImages = project ? [
+    ...(project.completionData?.beforeImages?.filter(u => u.trim()) || []),
+    ...(project.completionData?.afterImages?.filter(u => u.trim()) || []),
+    ...(project.completionData?.progressImages?.filter(u => u.trim()) || []),
+  ] : [];
+
+  const completedSubs = (project?.subProjects || []).filter(s => s.isCompleted);
 
   if (loading) {
     return (
@@ -414,66 +323,113 @@ export default function CompletedProjectsPage() {
     );
   }
 
+  if (!project) {
+    return (
+      <div className="min-h-screen bg-[#fafffa] flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-light text-gray-900 mb-4">Project not found</h2>
+          <Link href="/completed-projects">
+            <button className="px-6 py-3 bg-green-600 text-white rounded-full hover:bg-green-700">
+              Back to Completed Projects
+            </button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-[#fafffa]">
 
-      {/* HERO */}
-      <section className="py-20 px-6 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-[0.02]">
-          <div className="absolute inset-0" style={{
-            backgroundImage: 'radial-gradient(circle at 1px 1px, rgb(22 163 74) 1px, transparent 0)',
-            backgroundSize: '40px 40px'
-          }} />
-        </div>
-        <div className="max-w-7xl mx-auto relative z-10 text-center">
-          <div className="inline-flex items-center gap-2 bg-green-100 text-green-600 px-4 py-2 rounded-full text-sm font-medium mb-6">
-            <CheckCircle className="w-4 h-4" /> Completed Projects
-          </div>
-          <h1 className="text-5xl md:text-6xl font-light text-gray-900 mb-6 leading-tight">
-            Our Impact <span className="font-semibold text-green-600">in Action</span>
-          </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto font-light leading-relaxed mb-16">
-            See the tangible results of your generosity. Every completed project represents lives changed, communities empowered, and dreams fulfilled.
-          </p>
+      {/* Back button */}
+      <div className="max-w-7xl mx-auto px-6 pt-8">
+        <Link href="/completed-projects">
+          <button className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 transition-colors">
+            <ChevronLeft className="w-4 h-4" /> Back to Completed Projects
+          </button>
+        </Link>
+      </div>
 
-          {/* Stats */}
-          <div className="grid md:grid-cols-4 gap-6">
-            {[
-              { value: totalStats.count, label: 'Projects Completed' },
-              { value: formatCurrency(totalStats.raised), label: 'Total Funds Raised' },
-              { value: totalStats.supporters.toLocaleString(), label: 'Total Supporters' },
-              { value: totalStats.peopleHelped.toLocaleString(), label: 'People Helped' },
-            ].map(({ value, label }) => (
-              <div key={label} className="bg-white rounded-2xl p-6 border border-gray-100 text-center">
-                <div className="text-4xl font-light text-green-600 mb-2">{value}</div>
-                <div className="text-sm text-gray-600">{label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Cards */}
-      <section className="pb-32 px-6">
+      {/* Project Hero */}
+      <section className="py-12 px-6">
         <div className="max-w-7xl mx-auto">
-          {cards.length === 0 ? (
-            <div className="text-center py-20 bg-white rounded-3xl border border-gray-100">
-              <CheckCircle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-2xl font-light text-gray-900 mb-2">No Completed Projects Yet</h3>
-              <p className="text-gray-600 mb-8">Check back soon to see our completed work!</p>
-              <Link href="/projects">
-                <button className="px-8 py-4 bg-green-600 text-white rounded-full hover:bg-green-700 transition-all">
-                  View Active Projects
-                </button>
-              </Link>
+          <div className="bg-white rounded-3xl overflow-hidden border border-gray-100 shadow-sm">
+
+            {/* Header */}
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-8 md:p-12">
+              <div className="flex items-center gap-3 mb-4 flex-wrap">
+                <span className="bg-green-600 text-white text-xs px-4 py-1.5 rounded-full font-medium flex items-center gap-1.5">
+                  <CheckCircle className="w-3.5 h-3.5" /> COMPLETED
+                </span>
+                {completedSubs.length > 0 && (
+                  <span className="bg-blue-100 text-blue-700 text-xs px-3 py-1.5 rounded-full font-medium flex items-center gap-1.5">
+                    <Users className="w-3.5 h-3.5" /> {completedSubs.length} {completedSubs.length === 1 ? 'Community' : 'Communities'}
+                  </span>
+                )}
+              </div>
+
+              <h1 className="text-4xl md:text-5xl font-light text-gray-900 mb-2">{project.title}</h1>
+              {project.subtitle && <p className="text-lg text-gray-600 mb-4">{project.subtitle}</p>}
+
+              <div className="flex items-center gap-1.5 text-sm text-gray-500 mb-8">
+                <Calendar className="w-4 h-4" />
+                Completed {formatDate(project.completionData?.completedDate)}
+              </div>
+
+              {/* Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  { label: 'Total Raised', value: formatCurrency(project.raised || 0), color: 'text-green-600' },
+                  { label: 'Goal', value: formatCurrency(project.goal), color: 'text-gray-900' },
+                  { label: 'Supporters', value: (project.supporters || 0).toLocaleString(), color: 'text-gray-900' },
+                  { label: 'Communities', value: completedSubs.length.toString(), color: 'text-blue-600' },
+                ].map(({ label, value, color }) => (
+                  <div key={label} className="bg-white rounded-2xl p-4">
+                    <div className={`text-2xl font-light ${color} mb-1`}>{value}</div>
+                    <div className="text-xs text-gray-500">{label}</div>
+                  </div>
+                ))}
+              </div>
             </div>
-          ) : (
-            <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-8">
-              {cards.map(card => <ProjectCard key={card.id} item={card} />)}
+
+            {/* Main project images + story */}
+            <div className="p-8 md:p-12 grid md:grid-cols-2 gap-8">
+              {mainImages.length > 0 && (
+                <div>
+                  <ImageSlideshow images={mainImages} />
+                </div>
+              )}
+              {project.completionData?.completionStory && (
+                <div className={mainImages.length === 0 ? 'md:col-span-2' : ''}>
+                  <h2 className="text-xl font-medium text-gray-900 mb-4">Our Impact Story</h2>
+                  <p className="text-gray-700 leading-relaxed text-base">
+                    {project.completionData.completionStory}
+                  </p>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
       </section>
+
+      {/* Communities Grid */}
+      {completedSubs.length > 0 && (
+        <section className="pb-20 px-6">
+          <div className="max-w-7xl mx-auto">
+            <div className="mb-8">
+              <h2 className="text-3xl font-light text-gray-900">
+                Communities <span className="font-semibold text-green-600">Served</span>
+              </h2>
+              <p className="text-gray-500 mt-2">Each community below represents a completed phase of this project.</p>
+            </div>
+            <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-8">
+              {completedSubs.map(sub => (
+                <CommunityCard key={sub.id} sub={sub} projectImage={project.image} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* CTA */}
       <section className="py-32 px-6 bg-green-600 text-white">
