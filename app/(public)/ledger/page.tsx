@@ -1,3 +1,7 @@
+export default function LedgerPage() {
+  return null
+}
+
 // "use client";
 
 // import React, { useState, useEffect } from 'react';

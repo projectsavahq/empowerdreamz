@@ -32,8 +32,8 @@ const AboutPage = () => {
       story: "We exist to create meaningful change in communities by connecting resources with real needs. Our mission-driven approach ensures every initiative has a clear purpose and measurable impact.",
       stats: [
         { number: "160+", label: "Families Helped" },
-        { number: "13", label: "Active Volunteers" },
-        { number: "4", label: "Communities Served" }
+        { number: "5", label: "Active Volunteers" },
+        { number: "2+", label: "Communities Served" }
       ]
     },
     values: {
@@ -52,7 +52,7 @@ const AboutPage = () => {
       stats: [
         { number: "100%", label: "Transparency" },
         { number: "24/7", label: "Community Support" },
-        { number: "3+", label: "Years Experience" }
+        { number: "1+", label: "Years Experience" }
       ]
     },
     team: {
@@ -159,7 +159,7 @@ const AboutPage = () => {
             <div className="text-sm text-gray-500">Families Helped</div>
           </div>
           <div>
-            <div className="text-4xl font-light text-green-600 mb-2">13</div>
+            <div className="text-4xl font-light text-green-600 mb-2">5</div>
             <div className="text-sm text-gray-500">Active Volunteers</div>
           </div>
           <div>
@@ -167,7 +167,7 @@ const AboutPage = () => {
             <div className="text-sm text-gray-500">Communities</div>
           </div>
           <div>
-            <div className="text-4xl font-light text-green-600 mb-2">3+</div>
+            <div className="text-4xl font-light text-green-600 mb-2">1+</div>
             <div className="text-sm text-gray-500">Years Experience</div>
           </div>
         </div>
@@ -335,15 +335,15 @@ const AboutPage = () => {
               <div className="text-gray-600">Families Helped</div>
             </div>
             <div className="text-center">
-              <div className="text-6xl font-light text-green-600 mb-2">13</div>
+              <div className="text-6xl font-light text-green-600 mb-2">5</div>
               <div className="text-gray-600">Active Volunteers</div>
             </div>
             <div className="text-center">
-              <div className="text-6xl font-light text-green-600 mb-2">4</div>
+              <div className="text-6xl font-light text-green-600 mb-2">1+</div>
               <div className="text-gray-600">Communities Served</div>
             </div>
             <div className="text-center">
-              <div className="text-6xl font-light text-green-600 mb-2">3+</div>
+              <div className="text-6xl font-light text-green-600 mb-2">2+</div>
               <div className="text-gray-600">Years Experience</div>
             </div>
           </div>

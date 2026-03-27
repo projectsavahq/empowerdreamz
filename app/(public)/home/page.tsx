@@ -19,8 +19,8 @@ const MinimalistCharity = () => {
     {
       number: "01",
       title: "Education",
-      stat: "75+",
-      label: "Students",
+      stat: "0",
+      label: "Comming Soon",
       image: "/c5.jpg",
       color: "emerald"
     },
@@ -28,14 +28,14 @@ const MinimalistCharity = () => {
       number: "02",
       title: "Clean Water",
       stat: "2+",
-      label: "Wells Built",
-      image: "/ca.jpg",
+      label: "Solar Powered Water System",
+      image: "/ca2.jpeg",
       color: "blue"
     },
     {
       number: "03",
       title: "Healthcare",
-      stat: "50+",
+      stat: "0",
       label: "Lives Saved",
       image: "/c7.jpg",
       color: "rose"
@@ -49,11 +49,11 @@ const MinimalistCharity = () => {
       title: "100% Transparency",
       description: "Track every dollar and see exactly where your contribution goes."
     },
-    {
-      icon: Globe,
-      title: "Global Reach",
-      description: "Operating in 25+ countries with local teams on the ground."
-    },
+    // {
+    //   icon: Globe,
+    //   title: "Global Reach",
+    //   description: "Operating in 25+ countries with local teams on the ground."
+    // },
     {
       icon: Users,
       title: "Community Driven",
@@ -79,19 +79,14 @@ const MinimalistCharity = () => {
       story: "The school program changed everything. Now I'm studying engineering and helping my community build a better future.",
       image: "/3.jpg"
     },
-    {
-      name: "Amara Patel",
-      location: "Nigeria",
-      story: "Access to healthcare saved my daughter's life. I'm forever grateful to this organization and its donors.",
-      image: "/6.jpg"
-    }
+    
   ];
 
   const impactAreas = [
-    { icon: BookOpen, title: "Education", count: "200+", desc: "Students enrolled", color: "bg-green-600" },
-    { icon: Droplet, title: "Water", count: "3+", desc: "Wells built", color: "bg-green-600" },
-    { icon: Activity, title: "Healthcare", count: "50+", desc: "Patients treated", color: "bg-green-600" },
-    { icon: Users, title: "Community", count: "3+", desc: "Villages empowered", color: "bg-green-600" }
+    { icon: BookOpen, title: "Education", count: "0", desc: "Coming Soon", color: "bg-green-600" },
+    { icon: Droplet, title: "Water", count: "2+", desc: "Solar Powered", color: "bg-green-600" },
+    { icon: Activity, title: "Healthcare", count: "0", desc: "Coming Soon", color: "bg-green-600" },
+    { icon: Users, title: "Community", count: "2+", desc: "Villages empowered", color: "bg-green-600" }
   ];
 
   return (
@@ -172,7 +167,7 @@ const MinimalistCharity = () => {
           </div>
           <div className="w-px bg-gray-200" />
           <div>
-            <div className="text-3xl sm:text-4xl font-light text-green-600 mb-1">4</div>
+            <div className="text-3xl sm:text-4xl font-light text-green-600 mb-1">3</div>
             <div className="text-xs sm:text-sm text-gray-500 uppercase tracking-wider">States</div>
           </div>
         </div>

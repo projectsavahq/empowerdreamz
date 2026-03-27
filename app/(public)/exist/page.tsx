@@ -32,26 +32,26 @@ const WhyWeExistPage = () => {
   const impactStories = [
     {
       image: "/c1.jpg",
-      stat: "100+",
+      stat: "0",
       label: "Children Educated",
-      description: "Access to quality education transforms futures"
+      description: "Comming Soon"
     },
     {
       image: "/c2.jpg",
-      stat: "3+",
+      stat: "1+",
       label: "Communities Served",
       description: "Building infrastructure that lasts generations"
     },
     {
       image: "/7.jpg",
-      stat: "200+",
+      stat: "0",
       label: "Meals Provided",
-      description: "No child should go to bed hungry"
+      description: "Comming Soon "
     },
     {
       image: "/nnn.jpg",
-      stat: "3+",
-      label: "Water Projects",
+      stat: "2+",
+      label: "Solar Powered Water System ",
       description: "Clean water is a fundamental human right"
     }
   ];
@@ -106,6 +106,7 @@ const WhyWeExistPage = () => {
               <div className="absolute bottom-6 left-6 text-white">
                 <p className="text-2xl font-light mb-1">Healthcare</p>
                 <p className="text-sm text-white/80">Saving lives, restoring hope</p>
+                <p className="text-sm text-white/80">Comming soon</p>
               </div>
             </div>
             <div className="relative h-80 rounded-2xl overflow-hidden bg-gray-100 group">
@@ -277,7 +278,7 @@ const WhyWeExistPage = () => {
             <div className="bg-white rounded-xl sm:rounded-2xl p-5 sm:p-6 md:p-8 text-gray-900">
               <TrendingUp className="w-8 h-8 sm:w-10 sm:h-10 text-green-600 mb-3 sm:mb-4" />
               <p className="text-3xl sm:text-4xl md:text-5xl font-light text-green-600 mb-1 sm:mb-2">2X</p>
-              <p className="text-sm sm:text-base text-gray-600">Growth in 2 Years</p>
+              <p className="text-sm sm:text-base text-gray-600">Growth in 1 Years</p>
             </div>
             <div className="bg-white rounded-xl sm:rounded-2xl p-5 sm:p-6 md:p-8 text-gray-900 mt-6 sm:mt-8">
               <Shield className="w-8 h-8 sm:w-10 sm:h-10 text-green-600 mb-3 sm:mb-4" />
@@ -291,7 +292,7 @@ const WhyWeExistPage = () => {
             </div>
             <div className="bg-white rounded-xl sm:rounded-2xl p-5 sm:p-6 md:p-8 text-gray-900 mt-6 sm:mt-8">
               <Heart className="w-8 h-8 sm:w-10 sm:h-10 text-green-600 mb-3 sm:mb-4" />
-              <p className="text-3xl sm:text-4xl md:text-5xl font-light text-green-600 mb-1 sm:mb-2">20+</p>
+              <p className="text-3xl sm:text-4xl md:text-5xl font-light text-green-600 mb-1 sm:mb-2">15+</p>
               <p className="text-sm sm:text-base text-gray-600">Donors</p>
             </div>
           </div>

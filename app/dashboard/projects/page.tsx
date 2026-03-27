@@ -223,10 +223,10 @@ export default function ProjectsPage() {
 
   const handleProjectSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.title || !formData.description || formData.goal <= 0) {
-      alert('Please fill in all required fields');
-      return;
-    }
+   if (!formData.title || !formData.description) {
+  alert('Please fill in all required fields');
+  return;
+}
     setSaving(true);
     try {
       if (editingProject) {
@@ -717,10 +717,10 @@ export default function ProjectsPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-2">Goal ($) <span className="text-red-500">*</span></label>
+                  <label className="block text-sm font-medium text-gray-900 mb-2">Goal ($)</label>
                   <input type="number" value={formData.goal} onChange={e => setFormData({ ...formData, goal: Number(e.target.value) })}
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    min="1" required disabled={saving} />
+                    min="0" disabled={saving} />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -814,9 +814,9 @@ export default function ProjectsPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-900 mb-2">Goal ($) <span className="text-red-500">*</span></label>
-                  <input type="number" value={subFormData.goal} onChange={e => setSubFormData({ ...subFormData, goal: Number(e.target.value) })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    min="1" required disabled={saving} />
+                  <input type="number" value={formData.goal} onChange={e => setFormData({ ...formData, goal: Number(e.target.value) })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    min="0" disabled={saving} />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-900 mb-2">Raised ($)</label>

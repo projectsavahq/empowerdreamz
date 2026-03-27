@@ -120,11 +120,11 @@ const TeamPage: React.FC = () => {
                 <div className="text-sm text-gray-500">Team Members</div>
               </div>
               <div>
-                <div className="text-4xl font-light text-green-600 mb-1">25+</div>
+                <div className="text-4xl font-light text-green-600 mb-1">2</div>
                 <div className="text-sm text-gray-500">Active Projects</div>
               </div>
               <div>
-                <div className="text-4xl font-light text-green-600 mb-1">150K+</div>
+                <div className="text-4xl font-light text-green-600 mb-1">2K+</div>
                 <div className="text-sm text-gray-500">Lives Impacted</div>
               </div>
             </div>
