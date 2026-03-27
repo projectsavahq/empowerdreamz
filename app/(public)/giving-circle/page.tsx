@@ -112,8 +112,8 @@ export default function GivingCirclePage() {
             workspaces.map(workspace => {
               const isOpen = expanded.has(workspace.id);
               const expenses = workspace.expenses || [];
-              const totalSpent = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
-              const remaining = (workspace.totalReceived || 0) - totalSpent;
+              // const totalSpent = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+              // const remaining = (workspace.totalReceived || 0) - totalSpent;
 
               return (
                 <div key={workspace.id} className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
@@ -200,7 +200,7 @@ export default function GivingCirclePage() {
                         </div>
                       )}
 
-                      {/* Summary bar */}
+                      {/* Summary bar
                       <div className="mt-6 grid grid-cols-3 gap-4">
                         <div className="bg-gray-50 rounded-xl p-4 text-center">
                           <p className="text-xs text-gray-400 mb-1">Received</p>
@@ -216,9 +216,9 @@ export default function GivingCirclePage() {
                             {formatCurrency(remaining)}
                           </p>
                         </div>
-                      </div>
+                      </div>  */}
 
-                      {/* Progress bar */}
+                      {/* Progress bar 
                       {workspace.totalReceived > 0 && (
                         <div className="mt-4">
                           <div className="flex justify-between text-xs text-gray-400 mb-1.5">
@@ -232,7 +232,7 @@ export default function GivingCirclePage() {
                             />
                           </div>
                         </div>
-                      )}
+                      )} */}
                     </div>
                   )}
                 </div>

@@ -339,7 +339,7 @@ const MinimalistCharity = () => {
             </h2>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
             {features.map((feature, idx) => (
               <div key={idx} className="group">
                 <div className="mb-6">
@@ -398,7 +398,7 @@ const MinimalistCharity = () => {
             </h2>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
             {stories.map((story, idx) => (
               <div key={idx} className="bg-white rounded-2xl p-8 hover:shadow-lg transition-all duration-300 hover:scale-105">
                 <div className="mb-6">
