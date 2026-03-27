@@ -30,10 +30,10 @@ export default function Navbar() {
       dropdownItems: [
         { name: "Projects", path: "/projects" },
         { name: "Completed Projects", path: "/completed-projects" },
-        { name: "Ledger", path: "/ledger" },
+        { name: "Given-Circle", path: "/giving-circle" },
       ]
      },
-     {name: "Given-Circle", path: "/giving-circle"},
+     {name: "Partners", path: "/partners"},
     { name: "Our Team", path: "/our-team" },
     { name: "Contact", path: "/contact" },
   ];

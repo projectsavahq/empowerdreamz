@@ -89,10 +89,10 @@ function ImageSlideshow({ images }: { images: string[] }) {
   return (
     <>
       <div
-        className="relative rounded-2xl overflow-hidden bg-gray-100 aspect-video group cursor-pointer"
+        className="relative rounded-2xl overflow-hidden bg-gray-100 aspect-[3/4] group cursor-pointer"
         onClick={() => setLightbox(true)}
       >
-        <Image src={images[current]} alt={`slide ${current + 1}`} fill className="object-cover transition-opacity duration-500" />
+        <Image src={images[current]} alt={`slide ${current + 1}`} fill className="object-contain transition-opacity duration-500" />
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
           <span className="opacity-0 group-hover:opacity-100 transition-opacity text-white text-sm font-medium bg-black/40 px-4 py-2 rounded-full">
             Click to expand
@@ -165,9 +165,6 @@ function ProjectCard({ item }: { item: CardItem }) {
     !!item.completionData.impactStats.customMetric
   );
 
-  const formatCurrency = (amount: number) =>
-    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
-
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'Recently';
     return new Date(dateString).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
@@ -181,11 +178,11 @@ function ProjectCard({ item }: { item: CardItem }) {
         {allImages.length > 0 ? (
           <ImageSlideshow images={allImages} />
         ) : item.image ? (
-          <div className="relative h-48 rounded-2xl overflow-hidden bg-gray-100">
-            <Image src={item.image} alt={item.title} fill className="object-cover" />
+          <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-gray-100">
+            <Image src={item.image} alt={item.title} fill className="object-contain" />
           </div>
         ) : (
-          <div className="h-48 rounded-2xl bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center">
+          <div className="aspect-[3/4] rounded-2xl bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center">
             <CheckCircle className="w-14 h-14 text-green-300" />
           </div>
         )}
@@ -217,20 +214,6 @@ function ProjectCard({ item }: { item: CardItem }) {
         <div className="flex items-center gap-1.5 text-xs text-gray-400 mb-4">
           <Calendar className="w-3.5 h-3.5" />
           {formatDate(item.completionData?.completedDate)}
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-2 mb-4">
-          {[
-            { label: 'Raised', value: formatCurrency(item.raised || 0), color: 'text-green-600' },
-            { label: 'Goal', value: formatCurrency(item.goal), color: 'text-gray-900' },
-            { label: 'Supporters', value: (item.supporters || 0).toLocaleString(), color: 'text-gray-900' },
-          ].map(({ label, value, color }) => (
-            <div key={label} className="bg-gray-50 rounded-xl p-3 text-center">
-              <div className={`text-sm font-semibold ${color}`}>{value}</div>
-              <div className="text-xs text-gray-400 mt-0.5">{label}</div>
-            </div>
-          ))}
         </div>
 
         {/* Story preview */}
@@ -339,13 +322,11 @@ export default function CompletedProjectsPage() {
         const project = { id: doc.id, ...doc.data() } as Project;
 
         if (project.isCompleted) {
-          // Main project is fully complete → show as one clickable card
           const completedSubs = (project.subProjects || []).filter(s => s.isCompleted);
           const previewImages = [
             ...(project.completionData?.beforeImages?.filter(u => u.trim()) || []),
             ...(project.completionData?.afterImages?.filter(u => u.trim()) || []),
             ...(project.completionData?.progressImages?.filter(u => u.trim()) || []),
-            // Pull a few from subs as preview if main has no images
             ...completedSubs.flatMap(s => s.completionData?.afterImages?.filter(u => u.trim()) || []),
           ].slice(0, 8);
 
@@ -367,7 +348,6 @@ export default function CompletedProjectsPage() {
           });
 
         } else if (project.subProjects?.length) {
-          // Main project still active → show each completed sub-project directly
           project.subProjects
             .filter(sub => sub.isCompleted)
             .forEach(sub => {
@@ -396,14 +376,8 @@ export default function CompletedProjectsPage() {
     return () => unsubscribe();
   }, []);
 
-  const formatCurrency = (amount: number) =>
-    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
-
   const totalStats = {
     count: cards.length,
-    raised: cards.reduce((s, c) => s + (c.raised || 0), 0),
-    supporters: cards.reduce((s, c) => s + (c.supporters || 0), 0),
-    peopleHelped: cards.reduce((s, c) => s + (c.completionData?.impactStats?.peopleHelped || 0), 0),
   };
 
   if (loading) {
@@ -436,19 +410,12 @@ export default function CompletedProjectsPage() {
             See the tangible results of your generosity. Every completed project represents lives changed, communities empowered, and dreams fulfilled.
           </p>
 
-          {/* Stats */}
-          <div className="grid md:grid-cols-4 gap-6">
-            {[
-              { value: totalStats.count, label: 'Projects Completed' },
-              { value: formatCurrency(totalStats.raised), label: 'Total Funds Raised' },
-              { value: totalStats.supporters.toLocaleString(), label: 'Total Supporters' },
-              { value: totalStats.peopleHelped.toLocaleString(), label: 'People Helped' },
-            ].map(({ value, label }) => (
-              <div key={label} className="bg-white rounded-2xl p-6 border border-gray-100 text-center">
-                <div className="text-4xl font-light text-green-600 mb-2">{value}</div>
-                <div className="text-sm text-gray-600">{label}</div>
-              </div>
-            ))}
+          {/* Stats — Projects Completed only */}
+          <div className="flex justify-center">
+            <div className="bg-white rounded-2xl p-6 border border-gray-100 text-center min-w-[200px]">
+              <div className="text-4xl font-light text-green-600 mb-2">{totalStats.count}</div>
+              <div className="text-sm text-gray-600">Projects Completed</div>
+            </div>
           </div>
         </div>
       </section>
