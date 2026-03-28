@@ -192,9 +192,9 @@ export default function GivingCirclePage() {
                                   )}
                                 </div>
                               </div>
-                              <p className="text-lg font-light text-gray-900 flex-shrink-0">
+                              {/* <p className="text-lg font-light text-gray-900 flex-shrink-0">
                                 {formatCurrency(expense.amount || 0)}
-                              </p>
+                              </p> */}
                             </div>
                           ))}
                         </div>
