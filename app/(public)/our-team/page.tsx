@@ -49,16 +49,7 @@ const TeamPage: React.FC = () => {
       twitter: "#",
       quote: "True change comes from listening to those we serve.",
     },
-     {
-      name: "John Hunwi",
-      role: "Impact Lead",
-      image: "/image.jpg",
-      bio: "John Hunwi drives measurable social impact through strategic program design, data-driven evaluation, and stakeholder collaboration. He ensures our initiatives create lasting change in the communities we serve.",
-      email: "",
-      linkedin: "https://www.linkedin.com/in/john-hunwi-671b2b177?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app",
-      twitter: "#",
-      quote: "Impact isn't just about what we do—it's about the lives we transform and the change that endures.",
-    }
+    
   ];
 
   return (
@@ -88,12 +79,11 @@ const TeamPage: React.FC = () => {
           </div>
 
           {/* Team Preview Images - 3 Column Layout Centered */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-16 max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16 max-w-5xl mx-auto">
             {[
               { img: "/f.jpg", name: "Felix Abraham" },
               { img: "/ff.jpg", name: "Eugene Oyango" },
               { img: "/fff.jpg", name: "Ifeayi Orji" },
-              { img: "/image.jpg", name: "John Hunwi" },
             ].map((member, i) => (
               <div key={i} className="group relative">
                 <div className="relative h-80 rounded-2xl overflow-hidden bg-gray-100 border border-gray-100 hover:shadow-lg transition-all duration-300">
@@ -208,7 +198,7 @@ const TeamPage: React.FC = () => {
           </div>
 
           {/* Team Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {teamMembers.map((member, index) => (
               <div
                 key={index}

@@ -21,7 +21,7 @@ const nunitoSans = Nunito_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Empowerdreams",
+  title: "Empowerdreamz",
   description: "we help people in need",
 };
 
